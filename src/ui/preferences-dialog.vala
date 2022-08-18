@@ -71,6 +71,9 @@ namespace Peek.Ui {
     private unowned Gtk.Scale recording_gifski_quality_scale;
 
     [GtkChild]
+    private unowned Gtk.CheckButton recording_palette_downsample;
+
+    [GtkChild]
     private unowned Gtk.Adjustment recording_start_delay;
 
     [GtkChild]
@@ -109,6 +112,10 @@ namespace Peek.Ui {
 
       settings.bind ("recording-gifski-quality",
         recording_gifski_quality, "value",
+        SettingsBindFlags.DEFAULT);
+
+      settings.bind ("recording-palette-downsample",
+        recording_palette_downsample, "active",
         SettingsBindFlags.DEFAULT);
 
       settings.bind ("recording-start-delay",
@@ -170,6 +177,7 @@ namespace Peek.Ui {
     private void on_output_format_changed () {
       recording_gifski_settings.sensitive = is_format (OutputFormat.GIF);
       recording_capture_sound.sensitive = is_format (OutputFormat.MP4) || is_format (OutputFormat.WEBM);
+      recording_palette_downsample.sensitive = is_format (OutputFormat.APNG) || is_format (OutputFormat.WEBP);
     }
 
     [GtkCallback]

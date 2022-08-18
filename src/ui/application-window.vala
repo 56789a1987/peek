@@ -95,7 +95,7 @@ namespace Peek.Ui {
 
     private GLib.Settings settings;
 
-    private const int SMALL_WINDOW_SIZE = 400;
+    private const int SMALL_WINDOW_SIZE = 420;
 
     public ApplicationWindow (Peek.Application application,
       ScreenRecorder recorder) {
@@ -171,6 +171,10 @@ namespace Peek.Ui {
 
       settings.bind ("recording-gifski-quality",
         this.recorder.config, "gifski_quality",
+        SettingsBindFlags.DEFAULT);
+
+      settings.bind ("recording-palette-downsample",
+        this.recorder.config, "palette_downsample",
         SettingsBindFlags.DEFAULT);
 
       settings.bind ("recording-framerate",

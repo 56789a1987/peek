@@ -53,6 +53,10 @@
       <default>60</default>
       <summary>Quality setting for the gifski GIF encoder</summary>
     </key>
+    <key name="recording-palette-downsample" type="b">
+      <default>true</default>
+      <summary>Whether to Use a palette to downsample the image</summary>
+    </key>
     <key name="recording-start-delay" type="i">
       <range min="0" max="60"/>
       <default>3</default>
