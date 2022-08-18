@@ -122,7 +122,8 @@ namespace Peek.Recording {
         } else if (FfmpegPostProcessor.is_available ()) {
           pipeline.add (new FfmpegPostProcessor (config));
         }
-      } else if (config.output_format == OutputFormat.APNG) {
+      } else if (config.output_format == OutputFormat.APNG
+        || config.output_format == OutputFormat.WEBP) {
         pipeline.add (new FfmpegPostProcessor (config));
       }
 

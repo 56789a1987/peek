@@ -96,6 +96,14 @@ namespace Peek.PostProcessing {
         if (config.output_format == OutputFormat.APNG) {
           argv.append_val ("-plays");
           argv.append_val ("0");
+        } else if (config.output_format == OutputFormat.WEBP) {
+          argv.append_val ("-lossless");
+          argv.append_val ("1");
+          argv.append_val ("-loop");
+          argv.append_val ("0");
+          argv.append_val ("-an");
+          argv.append_val ("-vsync");
+          argv.append_val ("0");
         }
 
         argv.append_val (output_file);

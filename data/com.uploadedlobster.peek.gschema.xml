@@ -32,12 +32,14 @@
         <choice value="apng"/>
         <choice value="mp4"/>
         <choice value="webm"/>
+        <choice value="webp"/>
       </choices>
       <aliases>
         <alias value="GIF" target="gif"/>
         <alias value="APNG" target="apng"/>
         <alias value="MP4" target="mp4"/>
         <alias value="WebM" target="webm"/>
+        <alias value="WebP" target="webp"/>
       </aliases>
       <default>"gif"</default>
       <summary>Output file format</summary>
