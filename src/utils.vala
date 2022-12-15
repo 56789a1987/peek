@@ -123,6 +123,50 @@ namespace Peek {
       return message;
     }
 
+    public struct AudioDevice {
+      public string name;
+      public string description;
+    }
+
+    public static Array<AudioDevice> get_pulse_audio_devices () {
+      string[] args = { "pactl", "list", "sources" };
+      string lang = Environment.get_variable ("LANG");
+      Environment.set_variable ("LANG", "C", true);
+  
+      int status;
+      string output;
+      Array<AudioDevice> devices = new Array<AudioDevice> ();
+
+      try {
+        Process.spawn_sync (null, args, null,
+          SpawnFlags.SEARCH_PATH,
+          null, out output, null, out status);
+
+        string[] sources = output.split ("\n\n");
+        foreach (string source in sources) {
+          AudioDevice device = { };
+          string[] lines = source.split ("\n");
+          device.name = find_by_prefix (lines, "Name:");
+          device.description = find_by_prefix (lines, "Description:");
+          devices.append_val(device);
+        }
+      } catch (SpawnError e) {
+        debug ("Error: %s", e.message);
+      }
+
+      Environment.set_variable ("LANG", lang, true);
+      return devices;
+    }
+
+    private static string find_by_prefix (string[] items, string prefix) {
+      foreach (string item in items) {
+        if (item.strip ().has_prefix (prefix)) {
+          return item.strip ().substring (prefix.length).strip ();
+        }
+      }
+      return "Unknown";
+    }
+
     private static string? read_instream_as_utf8 (InputStream stream) {
       var output = new StringBuilder ();
       var dis = new DataInputStream (stream);
