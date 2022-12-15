@@ -26,12 +26,12 @@ namespace Peek.Recording {
         // args.append_val ("-loglevel");
         // args.append_val ("debug");
 
-        if (config.capture_sound) {
+        if (config.capture_sound != "none") {
           if (config.output_format == OutputFormat.MP4){
             args.append_val ("-f");
             args.append_val ("pulse");
             args.append_val ("-i");
-            args.append_val ("default");
+            args.append_val (config.capture_sound);
             args.append_val ("-acodec");
             args.append_val ("mp3");
           }
@@ -39,7 +39,7 @@ namespace Peek.Recording {
             args.append_val ("-f");
             args.append_val ("pulse");
             args.append_val ("-i");
-            args.append_val ("default");
+            args.append_val (config.capture_sound);
             args.append_val ("-acodec");
             args.append_val ("vorbis");
           }

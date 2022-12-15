@@ -83,11 +83,16 @@ namespace Peek.Ui {
     private unowned Gtk.CheckButton recording_capture_mouse;
 
     [GtkChild]
-    private unowned Gtk.CheckButton recording_capture_sound;
+    private unowned Gtk.ComboBoxText recording_audio_device_combo_box;
 
 
     public PreferencesDialog () {
       Object ();
+
+      Array<Utils.AudioDevice> audio_devices = Utils.get_pulse_audio_devices ();
+      foreach (Utils.AudioDevice device in audio_devices) {
+        recording_audio_device_combo_box.append (device.name, device.description);
+      }
 
       settings = Application.get_app_settings ();
 
@@ -127,8 +132,8 @@ namespace Peek.Ui {
         recording_capture_mouse, "active",
         SettingsBindFlags.DEFAULT);
 
-      settings.bind ("recording-capture-sound",
-        recording_capture_sound, "active",
+      settings.bind ("recording-capture-audio-device",
+        recording_audio_device_combo_box, "active_id",
         SettingsBindFlags.DEFAULT);
 
 
@@ -143,6 +148,11 @@ namespace Peek.Ui {
       if (!PostProcessing.GifskiPostProcessor.is_available ()) {
         recording_gifski_settings.hide ();
       }
+
+      Gtk.CellRenderer renderer = recording_audio_device_combo_box.get_cells ().nth_data (0);
+      renderer.set_property ("max-width-chars", 1);
+      renderer.set_property ("ellipsize", Pango.EllipsizeMode.END);
+      recording_audio_device_combo_box.tooltip_text = recording_audio_device_combo_box.get_active_text ();
 
 #if HAS_KEYBINDER
       if (DesktopIntegration.is_x11_backend ()) {
@@ -169,7 +179,12 @@ namespace Peek.Ui {
     [GtkCallback]
     private void on_output_format_changed () {
       recording_gifski_settings.sensitive = is_format (OutputFormat.GIF);
-      recording_capture_sound.sensitive = is_format (OutputFormat.MP4) || is_format (OutputFormat.WEBM);
+      recording_audio_device_combo_box.sensitive = is_format (OutputFormat.MP4) || is_format (OutputFormat.WEBM);
+    }
+
+    [GtkCallback]
+    private void on_audio_device_changed () {
+      recording_audio_device_combo_box.tooltip_text = recording_audio_device_combo_box.get_active_text ();
     }
 
     [GtkCallback]
