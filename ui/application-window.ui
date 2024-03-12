@@ -30,7 +30,6 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
   <object class="GtkImage" id="icon_record_button">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="tooltip-text" translatable="yes">Start recording</property>
     <property name="icon-name">media-record-symbolic</property>
   </object>
   <object class="GtkImage" id="icon_stop_button">
@@ -75,6 +74,20 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
           </packing>
         </child>
         <child>
+          <object class="GtkModelButton" id="reselect_source_button">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="text" translatable="yes">Re-select source</property>
+            <signal name="clicked" handler="on_reselect_source_button_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkSeparator">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -82,7 +95,7 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -96,7 +109,7 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -110,7 +123,7 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>
@@ -226,7 +239,6 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
             <property name="vexpand">False</property>
             <property name="baseline-position">bottom</property>
             <property name="layout-style">expand</property>
-            <property name="homogeneous">False</property>
             <child>
               <object class="GtkButton" id="stop_button">
                 <property name="label" translatable="yes">_Stop</property>
@@ -259,6 +271,7 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="tooltip-text" translatable="yes">Start recording</property>
                 <property name="image">icon_record_button</property>
                 <property name="use-underline">True</property>
                 <property name="always-show-image">True</property>
@@ -305,6 +318,7 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
             <property name="popover">pop_menu</property>
+            <signal name="toggled" handler="on_pop_menu_button_toggled" swapped="no"/>
             <child>
               <object class="GtkImage">
                 <property name="visible">True</property>
