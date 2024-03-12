@@ -224,7 +224,6 @@ Author: Philipp Wolfer <ph.wolfer@gmail.com>
                       <item id="apng" translatable="yes">APNG</item>
                       <item id="webm" translatable="yes">WebM</item>
                       <item id="webp" translatable="yes">WebP</item>
-                      <item id="mp4" translatable="yes">MP4</item>
                     </items>
                     <signal name="changed" handler="on_output_format_changed" swapped="no"/>
                   </object>

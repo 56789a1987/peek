@@ -20,7 +20,6 @@ namespace Peek {
   public enum OutputFormat {
     APNG,
     GIF,
-    MP4,
     WEBM,
     WEBP;
 
@@ -34,8 +33,6 @@ namespace Peek {
           return "webm";
         case WEBP:
           return "webp";
-        case MP4:
-          return "mp4";
         default:
           assert_not_reached ();
       }
