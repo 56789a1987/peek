@@ -15,6 +15,7 @@ namespace Peek.Recording {
     public bool capture_mouse { get; set; default = true; }
     public string capture_sound { get; set; default = "none"; }
     public bool gifski_enabled { get; set; default = false; }
+    public bool palette_downsample { get; set; default = true; }
     public int gifski_quality { get; set; default = DEFAULT_GIFSKI_QUALITY; }
   }
 }

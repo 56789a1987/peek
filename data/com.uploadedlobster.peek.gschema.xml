@@ -32,12 +32,14 @@
         <choice value="apng"/>
         <choice value="mp4"/>
         <choice value="webm"/>
+        <choice value="webp"/>
       </choices>
       <aliases>
         <alias value="GIF" target="gif"/>
         <alias value="APNG" target="apng"/>
         <alias value="MP4" target="mp4"/>
         <alias value="WebM" target="webm"/>
+        <alias value="WebP" target="webp"/>
       </aliases>
       <default>"gif"</default>
       <summary>Output file format</summary>
@@ -50,6 +52,10 @@
       <range min="20" max="100"/>
       <default>60</default>
       <summary>Quality setting for the gifski GIF encoder</summary>
+    </key>
+    <key name="recording-palette-downsample" type="b">
+      <default>true</default>
+      <summary>Whether to Use a palette to downsample the image</summary>
     </key>
     <key name="recording-start-delay" type="i">
       <range min="0" max="60"/>

@@ -80,6 +80,7 @@ namespace Peek.PostProcessing {
         var output_file = Utils.create_temp_file (extension);
 
         var argv = new Array<string> ();
+        var filters_value = "fps=%d".printf (config.framerate);
 
         argv.append_val ("ffmpeg");
         argv.append_val ("-y");
@@ -87,14 +88,25 @@ namespace Peek.PostProcessing {
         argv.append_val ("-i");
         argv.append_val (input_file.get_path ());
 
-        argv.append_val ("-i");
-        argv.append_val (palette_file.get_path ());
+        if (config.palette_downsample) {
+          argv.append_val ("-i");
+          argv.append_val (palette_file.get_path ());
+          filters_value += ",paletteuse";
+        }
 
         argv.append_val ("-filter_complex");
-        argv.append_val ("fps=%d,paletteuse".printf (config.framerate));
+        argv.append_val (filters_value);
 
         if (config.output_format == OutputFormat.APNG) {
           argv.append_val ("-plays");
+          argv.append_val ("0");
+        } else if (config.output_format == OutputFormat.WEBP) {
+          argv.append_val ("-lossless");
+          argv.append_val ("1");
+          argv.append_val ("-loop");
+          argv.append_val ("0");
+          argv.append_val ("-an");
+          argv.append_val ("-vsync");
           argv.append_val ("0");
         }
 

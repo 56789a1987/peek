@@ -220,7 +220,8 @@ namespace Peek.Recording {
     private string get_temp_file_extension () {
       string extension;
       if (config.output_format == OutputFormat.GIF
-        || config.output_format == OutputFormat.APNG) {
+        || config.output_format == OutputFormat.APNG
+        || config.output_format == OutputFormat.WEBP) {
         extension = "webm";
       } else {
         extension = Utils.get_file_extension_for_format (config.output_format);

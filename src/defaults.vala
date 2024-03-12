@@ -21,7 +21,8 @@ namespace Peek {
     APNG,
     GIF,
     MP4,
-    WEBM;
+    WEBM,
+    WEBP;
 
     public string to_string() {
       switch (this) {
@@ -31,6 +32,8 @@ namespace Peek {
           return "gif";
         case WEBM:
           return "webm";
+        case WEBP:
+          return "webp";
         case MP4:
           return "mp4";
         default:
