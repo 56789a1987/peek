@@ -66,6 +66,7 @@ peek_deps = [
   dependency('gmodule-2.0'),
   dependency('gdk-x11-3.0', version: '>= 3.20'),
   gtk,
+  gstreamer,
 ]
 
 if keybinder.found()
@@ -93,9 +94,7 @@ if not enable_gnome_shell
   vala_args += ['-D', 'DISABLE_GNOME_SHELL']
 endif
 
-if enable_xdg_desktop_portal
-  peek_deps += gstreamer
-else
+if not enable_xdg_desktop_portal
   message('XDG desktop portal and pipe wire recorder disabled by configuration')
   vala_args += ['-D', 'DISABLE_XDG_DESKTOP_PORTAL']
 endif

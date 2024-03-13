@@ -88,7 +88,7 @@ namespace Peek.PostProcessing {
         argv.append_val ("-i");
         argv.append_val (input_file.get_path ());
 
-        if (config.palette_downsample) {
+        if (config.output_format == OutputFormat.GIF || config.palette_downsample) {
           argv.append_val ("-i");
           argv.append_val (palette_file.get_path ());
           filters_value += ",paletteuse";

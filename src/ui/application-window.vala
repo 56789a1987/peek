@@ -70,9 +70,6 @@ namespace Peek.Ui {
     private unowned Label size_indicator;
 
     [GtkChild]
-    private unowned Label delay_indicator;
-
-    [GtkChild]
     private unowned Label shortcut_label;
 
     [GtkChild]
@@ -541,14 +538,15 @@ namespace Peek.Ui {
       if (is_recording)
         return;
 
-      // When XDG desktop portal is used, the screen cast select dialog will show up during prparing.
+      // When pipe wire is used, the select source dialog will show up.
+      // The dialog should be shown before starting counting down.
       // Don't make the main window overlay on it.
       var is_prepared = false;
       set_keep_above (false);
 
 #if ! DISABLE_XDG_DESKTOP_PORTAL
       if (backend_name == "pipewire") {
-        // Load the saved restore token to screen cast service
+        // Load the saved restore token to screen cast service if we are using pipe wire
         XDGDesktopPortal.restore_token = restore_token;
       }
 #endif
@@ -566,10 +564,10 @@ namespace Peek.Ui {
         }
       } catch (RecordingError e) {
         stderr.printf ("Failed to initialize recorder: %s\n", e.message);
-          ErrorDialog.present_single_instance (
-            this,
-            _ ("Recording could not be started due to an unexpected error."),
-            e);
+        ErrorDialog.present_single_instance (
+          this,
+          _ ("Recording could not be started due to an unexpected error."),
+          e);
       }
 
       set_keep_above (true);
@@ -580,26 +578,22 @@ namespace Peek.Ui {
       var delay = this.recording_start_delay;
 
       if (delay > 0) {
-        delay_indicator.set_text (delay.to_string ());
-        delay_indicator.show ();
+        var title = new Gtk.Label (delay.to_string ());
+        title.show ();
+        headerbar.set_custom_title (title);
         size_indicator.hide ();
         shortcut_label.hide ();
+
         delay_indicator_timeout = Timeout.add_seconds (1, () => {
           delay -= 1;
 
           if (delay == 0) {
             delay_indicator_timeout = 0;
-            ulong hide_handler = 0;
-            hide_handler = delay_indicator.hide.connect (() => {
-              delay_indicator.disconnect (hide_handler);
-              stop_button.set_label (stop_button_label);
-              delay_indicator.queue_draw ();
-              start_recording ();
-            });
-            delay_indicator.hide ();
+            stop_button.set_label (stop_button_label);
+            start_recording ();
             return false;
           } else {
-            delay_indicator.set_text (delay.to_string ());
+            title.set_text (delay.to_string ());
             return true;
           }
         });
@@ -707,7 +701,6 @@ namespace Peek.Ui {
 
     private void leave_recording_state () {
       this.out_file = null;
-      delay_indicator.hide ();
       is_recording = false;
       is_postprocessing = false;
       stop_button.hide ();
@@ -758,12 +751,7 @@ namespace Peek.Ui {
       this.input_shape_combine_region (window_region);
 
       if (!this.get_screen ().is_composited ()) {
-        if (delay_indicator_timeout == 0 &&
-          size_indicator_timeout == 0) {
-          this.shape_combine_region (window_region);
-        } else {
-          this.shape_combine_region (null);
-        }
+        this.shape_combine_region (window_region);
       }
     }
 
@@ -820,9 +808,9 @@ namespace Peek.Ui {
       string filename = default_file_name_format + "." + extension;
 
       var filter = new FileFilter ();
+      filter.set_name ("%s files (*.%s)".printf (extension.up (), extension));
       filter.add_pattern ("*." + extension);
-      chooser.filter = filter;
-
+      chooser.add_filter (filter);
       var folder = load_preferred_save_folder ();
       chooser.set_current_folder (folder);
 

@@ -73,7 +73,6 @@ namespace Peek.Recording {
         string args = build_pipe_wire_args (area, fd);
         stdout.printf ("%s\n", args);
 
-        // FIXME: The countdown in the window is shortly recorded due to the stream has delay
         pipeline = parse_launch (args);
         pipeline.set_state (State.PLAYING);
         pipeline.get_bus ().message.connect (on_pipeline_message);
@@ -135,12 +134,12 @@ namespace Peek.Recording {
       args.append_printf ("path=%u ! ", node_id);
 
       args.append ("videoconvert chroma-mode=GST_VIDEO_CHROMA_MODE_NONE dither=GST_VIDEO_DITHER_NONE matrix-mode=GST_VIDEO_MATRIX_MODE_OUTPUT_ONLY ! queue ! ");
-      args.append_printf ("videorate ! video/x-raw,framerate=%d/1 ! ", config.framerate);
-      // When the user is propmpted to select sources, the full screen should be selected.
-      // Then the video is cropped using the position and size of the screen and recorder window.
-      // For a rectanglar area, the left and top of the area may not be returned, this breaks cropping.
+      args.append_printf ("videorate ! video/x-raw,framerate=%i/1 ! ", config.framerate);
+      // When user is propmpted to select sources, selecting the full screen is suggested.
+      // The video is cropped using the position and size of the screen and Peek window.
+      // For a rect area in the middle of the screen, the left and top of the area may not be returned. This breaks cropping.
       args.append_printf (
-        "videocrop top=%d left=%d right=%d bottom=%d ! ",
+        "videocrop top=%i left=%i right=%i bottom=%i ! ",
         area.top - stream.y,
         area.left - stream.x,
         stream.x + stream.w - area.left - area.width,
