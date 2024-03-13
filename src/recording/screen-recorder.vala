@@ -24,6 +24,10 @@ namespace Peek.Recording {
 
     public signal void recording_aborted (RecordingError? reason);
 
+    public abstract async bool prepare (Gtk.Window window) throws RecordingError;
+
+    public abstract void cancel_prepare();
+
     public abstract void record (RecordingArea area) throws RecordingError;
 
     public abstract void stop ();

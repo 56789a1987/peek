@@ -6,8 +6,12 @@ peek_sources = [
   'errordomain.vala',
   'gtk-helper.vala',
   'utils.vala',
+  'xdg-desktop-portal.vala',
   'dbus/freedesktop-dbus.vala',
   'dbus/freedesktop-filemanager.vala',
+  'dbus/freedesktop-portal-request.vala',
+  'dbus/freedesktop-portal-screen-cast.vala',
+  'dbus/freedesktop-portal-session.vala',
   'dbus/gnome-shell-screencast.vala',
   'dbus/gnome-shell.vala',
   'post-processing/cli-post-processor.vala',
@@ -21,6 +25,7 @@ peek_sources = [
   'recording/ffmpeg-screen-recorder.vala',
   'recording/ffmpeg.vala',
   'recording/gnome-shell-dbus-recorder.vala',
+  'recording/pipewire-recorder.vala',
   'recording/recording-area.vala',
   'recording/recording-config.vala',
   'recording/screen-recorder-factory.vala',
@@ -44,20 +49,24 @@ vala_args = [
 ]
 
 # Options
-enable_filechoosernative = get_option('enable-filechoosernative')
+enable_file_chooser_native = get_option('enable-file-chooser-native')
 enable_gnome_shell = get_option('enable-gnome-shell')
+enable_xdg_desktop_portal = get_option('enable-xdg-desktop-portal')
 enable_open_file_manager = get_option('enable-open-file-manager')
 
 # Dependencies
 gtk = dependency('gtk+-3.0', version: '>= 3.20')
 keybinder = dependency('keybinder-3.0', required: get_option('enable-keybinder'))
+gstreamer = dependency('gstreamer-1.0', required: enable_xdg_desktop_portal)
 
 peek_deps = [
   dependency('cairo'),
   dependency('gio-2.0', version: '>= 2.42'),
   dependency('glib-2.0', version: '>= 2.38'),
   dependency('gmodule-2.0'),
+  dependency('gdk-x11-3.0', version: '>= 3.20'),
   gtk,
+  gstreamer,
 ]
 
 if keybinder.found()
@@ -68,9 +77,9 @@ endif
 # Feature configuration
 if gtk.version().version_compare('>= 3.20')
   message('Compiling with features for GTK >= 3.20')
-  if enable_filechoosernative
+  if enable_file_chooser_native
     message('Compiling with Gtk.FileChooserNative')
-    vala_args += ['-D', 'HAS_GTK_FILECHOOSERNATIVE']
+    vala_args += ['-D', 'HAS_GTK_FILE_CHOOSER_NATIVE']
   endif
 endif
 
@@ -83,6 +92,11 @@ endif
 if not enable_gnome_shell
   message('GNOME Shell recorder disabled by configuration')
   vala_args += ['-D', 'DISABLE_GNOME_SHELL']
+endif
+
+if not enable_xdg_desktop_portal
+  message('XDG desktop portal and pipe wire recorder disabled by configuration')
+  vala_args += ['-D', 'DISABLE_XDG_DESKTOP_PORTAL']
 endif
 
 if not enable_open_file_manager

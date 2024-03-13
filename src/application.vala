@@ -244,8 +244,9 @@ namespace Peek {
 
     private void new_window () {
       try {
-        var recorder = ScreenRecorderFactory.create_default_screen_recorder ();
-        show_window (recorder);
+        var backend = ScreenRecorderFactory.get_default_screen_recorder_backend ();
+        var recorder = ScreenRecorderFactory.create_screen_recorder (backend);
+        show_window (recorder, backend);
       } catch (PeekError e) {
         var msg = _ ("Unable to initialize default recording backend: %s").printf (
           e.message);
@@ -261,7 +262,7 @@ namespace Peek {
 
       try {
         var recorder = ScreenRecorderFactory.create_screen_recorder (backend_name);
-        show_window (recorder);
+        show_window (recorder, backend_name);
       } catch (PeekError e) {
         var msg = _ ("Unable to initialize recording backend %s: %s").printf (
           backend_name, e.message);
@@ -274,13 +275,13 @@ namespace Peek {
       SetWindowSizeDialog.present_single_instance(main_window);
     }
 
-    private void show_window (ScreenRecorder recorder) {
+    private void show_window (ScreenRecorder recorder, string backend_name) {
       if (DesktopIntegration.is_wayland_backend ()) {
         show_wayland_warning ();
         return;
       }
 
-      main_window = new ApplicationWindow (this, recorder);
+      main_window = new ApplicationWindow (this, recorder, backend_name);
       main_window.present ();
     }
 

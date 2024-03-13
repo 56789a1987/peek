@@ -18,6 +18,8 @@ namespace Peek.Ui {
 
   [GtkTemplate (ui = "/com/uploadedlobster/peek/application-window.ui")]
   class ApplicationWindow : Gtk.ApplicationWindow {
+    public string backend_name { get; set; }
+
     public ScreenRecorder recorder { get; construct set; }
 
     public bool open_file_manager { get; set; }
@@ -31,6 +33,8 @@ namespace Peek.Ui {
     public string default_file_name_format { get; set; }
 
     public string save_folder { get; set; }
+
+    public string restore_token { get; set; }
 
     [GtkChild]
     private unowned HeaderBar headerbar;
@@ -66,9 +70,6 @@ namespace Peek.Ui {
     private unowned Label size_indicator;
 
     [GtkChild]
-    private unowned Label delay_indicator;
-
-    [GtkChild]
     private unowned Label shortcut_label;
 
     [GtkChild]
@@ -76,6 +77,9 @@ namespace Peek.Ui {
 
     [GtkChild]
     private unowned Popover pop_menu;
+
+    [GtkChild]
+    private unowned ModelButton reselect_source_button;
 
     private uint start_recording_event_source = 0;
     private uint size_indicator_timeout = 0;
@@ -96,10 +100,11 @@ namespace Peek.Ui {
     private const int SMALLER_WINDOW_SIZE = 175;
 
     public ApplicationWindow (Peek.Application application,
-      ScreenRecorder recorder) {
+      ScreenRecorder recorder, string backend_name) {
       Object (application: application);
 
       // Connect recorder signals
+      this.backend_name = backend_name;
       this.recorder = recorder;
       this.recorder.recording_started.connect (() => {
         enter_recording_state ();
@@ -197,6 +202,10 @@ namespace Peek.Ui {
 
       settings.bind ("persist-save-folder",
         this, "save_folder",
+        SettingsBindFlags.DEFAULT);
+
+      settings.bind ("persist-restore-token",
+        this, "restore_token",
         SettingsBindFlags.DEFAULT);
 
       // Update record button label when recording format changes
@@ -452,11 +461,7 @@ namespace Peek.Ui {
       // Set the scale of shortcut_label
       Pango.AttrList attrs = new Pango.AttrList ();
 
-      if (area.width < SMALLER_WINDOW_SIZE) {
-        pop_menu_button.visible = false;
-      } else {
-        pop_menu_button.visible = true;
-      }
+      pop_menu_button.visible = area.width > SMALLER_WINDOW_SIZE;
 
       if (area.width < SMALL_WINDOW_SIZE) {
         GtkHelper.hide_button_label (record_button);
@@ -485,8 +490,8 @@ namespace Peek.Ui {
     }
 
     [GtkCallback]
-    private void on_record_button_clicked (Button source) {
-      prepare_start_recording ();
+    private async void on_record_button_clicked (Button source) {
+      yield prepare_start_recording ();
     }
 
     [GtkCallback]
@@ -507,6 +512,12 @@ namespace Peek.Ui {
     }
 
     [GtkCallback]
+    private void on_reselect_source_button_clicked (Button source) {
+      pop_menu.hide ();
+      restore_token = "";
+    }
+
+    [GtkCallback]
     private void on_preferences_button_clicked (Button source) {
       pop_menu.hide ();
       PreferencesDialog.present_single_instance (this);
@@ -518,33 +529,71 @@ namespace Peek.Ui {
       AboutDialog.present_single_instance (this);
     }
 
-    private void prepare_start_recording () {
-      if (is_recording) return;
+    [GtkCallback]
+    private void on_pop_menu_button_toggled (ToggleButton source) {
+      reselect_source_button.visible = backend_name == "pipewire" && restore_token != "";
+    }
+
+    private async void prepare_start_recording () {
+      if (is_recording)
+        return;
+
+      // When pipe wire is used, the select source dialog will show up.
+      // The dialog should be shown before starting counting down.
+      // Don't make the main window overlay on it.
+      var is_prepared = false;
+      set_keep_above (false);
+
+#if ! DISABLE_XDG_DESKTOP_PORTAL
+      if (backend_name == "pipewire") {
+        // Load the saved restore token to screen cast service if we are using pipe wire
+        XDGDesktopPortal.restore_token = restore_token;
+      }
+#endif
+
+      try {
+        if (yield recorder.prepare (this)) {
+          is_prepared = true;
+
+#if ! DISABLE_XDG_DESKTOP_PORTAL
+          if (backend_name == "pipewire") {
+            // Save the new restore token if we got a new token during preparing
+            restore_token = XDGDesktopPortal.restore_token;
+          }
+#endif
+        }
+      } catch (RecordingError e) {
+        stderr.printf ("Failed to initialize recorder: %s\n", e.message);
+        ErrorDialog.present_single_instance (
+          this,
+          _ ("Recording could not be started due to an unexpected error."),
+          e);
+      }
+
+      set_keep_above (true);
+      if (!is_prepared)
+        return;
 
       enter_recording_state ();
       var delay = this.recording_start_delay;
 
       if (delay > 0) {
-        delay_indicator.set_text (delay.to_string ());
-        delay_indicator.show ();
+        var title = new Gtk.Label (delay.to_string ());
+        title.show ();
+        headerbar.set_custom_title (title);
         size_indicator.hide ();
         shortcut_label.hide ();
+
         delay_indicator_timeout = Timeout.add_seconds (1, () => {
           delay -= 1;
 
           if (delay == 0) {
             delay_indicator_timeout = 0;
-            ulong hide_handler = 0;
-            hide_handler = delay_indicator.hide.connect (() => {
-              delay_indicator.disconnect (hide_handler);
-              stop_button.set_label (stop_button_label);
-              delay_indicator.queue_draw ();
-              start_recording ();
-            });
-            delay_indicator.hide ();
+            stop_button.set_label (stop_button_label);
+            start_recording ();
             return false;
           } else {
-            delay_indicator.set_text (delay.to_string ());
+            title.set_text (delay.to_string ());
             return true;
           }
         });
@@ -594,11 +643,11 @@ namespace Peek.Ui {
       headerbar.set_custom_title (box);
     }
 
-    private void toggle_recording () {
+    private async void toggle_recording () {
       if (is_recording) {
         prepare_stop_recording ();
       } else {
-        prepare_start_recording ();
+        yield prepare_start_recording ();
       }
     }
 
@@ -652,7 +701,6 @@ namespace Peek.Ui {
 
     private void leave_recording_state () {
       this.out_file = null;
-      delay_indicator.hide ();
       is_recording = false;
       is_postprocessing = false;
       stop_button.hide ();
@@ -661,6 +709,7 @@ namespace Peek.Ui {
       pop_menu_button.set_sensitive (true);
       unfreeze_window_size ();
       remove_title ();
+      recorder.cancel_prepare ();
 
       if (in_file != null) {
         debug ("Deleting temp file %s\n", in_file.get_uri ());
@@ -702,12 +751,7 @@ namespace Peek.Ui {
       this.input_shape_combine_region (window_region);
 
       if (!this.get_screen ().is_composited ()) {
-        if (delay_indicator_timeout == 0 &&
-          size_indicator_timeout == 0) {
-          this.shape_combine_region (window_region);
-        } else {
-          this.shape_combine_region (null);
-        }
+        this.shape_combine_region (window_region);
       }
     }
 
@@ -741,7 +785,9 @@ namespace Peek.Ui {
     }
 
     private void show_file_chooser () {
-      #if HAS_GTK_FILECHOOSERNATIVE
+      set_keep_above (false);
+
+      #if HAS_GTK_FILE_CHOOSER_NATIVE
       var chooser = new FileChooserNative (
         _ ("Save animation"), this, FileChooserAction.SAVE,
         _ ("_Save"),
@@ -762,9 +808,9 @@ namespace Peek.Ui {
       string filename = default_file_name_format + "." + extension;
 
       var filter = new FileFilter ();
+      filter.set_name ("%s files (*.%s)".printf (extension.up (), extension));
       filter.add_pattern ("*." + extension);
-      chooser.filter = filter;
-
+      chooser.add_filter (filter);
       var folder = load_preferred_save_folder ();
       chooser.set_current_folder (folder);
 
@@ -782,10 +828,12 @@ namespace Peek.Ui {
         leave_recording_state ();
       }
 
-      #if ! HAS_GTK_FILECHOOSERNATIVE
+      #if ! HAS_GTK_FILE_CHOOSER_NATIVE
       // Close the FileChooserDialog:
       chooser.close ();
       #endif
+
+      set_keep_above (true);
     }
 
     private void try_save_file () {

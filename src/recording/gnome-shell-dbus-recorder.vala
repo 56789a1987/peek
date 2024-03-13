@@ -178,8 +178,8 @@ namespace Peek.Recording {
 
       if (config.output_format == OutputFormat.WEBM) {
         pipeline.append ("vp8enc cpu-used=16 max-quantizer=17 deadline=1 keyframe-mode=disabled threads=%T static-threshold=1000 buffer-size=20000 ! ");
-        if (config.capture_sound) {
-          pipeline.append ("queue ! mux. pulsesrc ! queue ! audioconvert ! vorbisenc ! ");
+        if (config.capture_sound != "none") {
+          pipeline.append_printf ("mux. pulsesrc device=\"%s\" ! queue ! audioconvert ! vorbisenc ! ", config.capture_sound);
         }
         pipeline.append ("queue ! mux. webmmux name=mux");
       } else {

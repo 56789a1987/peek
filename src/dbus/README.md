@@ -8,6 +8,11 @@ Source: `dbus-send --print-reply=literal --dest=org.freedesktop.DBus /org/freede
 ## org.freedesktop.FileManager1
 Source: https://www.freedesktop.org/wiki/Specifications/file-manager-interface/
 
+## org.freedesktop.portal.Request.xml
+## org.freedesktop.portal.ScreenCast.xml
+## org.freedesktop.portal.Session.xml
+Source: https://github.com/flatpak/xdg-desktop-portal/blob/main/data/
+
 ## org.gnome.Shell.Screencast.xml
 Source: https://gitlab.gnome.org/GNOME/gnome-shell/tree/master/data
 

@@ -17,6 +17,10 @@ int main (string[] args) {
   // https://github.com/phw/peek#why-no-native-wayland-support
   Environment.set_variable ("GDK_BACKEND", "x11", false);
 
+#if ! DISABLE_XDG_DESKTOP_PORTAL
+  Gst.init (ref args);
+#endif
+
   // Setup gettext
   Intl.setlocale (LocaleCategory.ALL, "");
   Intl.bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);

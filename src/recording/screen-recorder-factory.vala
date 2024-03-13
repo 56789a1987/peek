@@ -11,12 +11,17 @@ namespace Peek.Recording {
 
   public class ScreenRecorderFactory {
 
-    public static ScreenRecorder create_default_screen_recorder () throws PeekError {
+    public static string get_default_screen_recorder_backend () throws PeekError {
       string recorder;
 
 #if ! DISABLE_GNOME_SHELL
       if (GnomeShellDbusRecorder.is_available ()) {
         recorder = "gnome-shell";
+      } else
+#endif
+#if ! DISABLE_XDG_DESKTOP_PORTAL
+      if (PipewireScreenRecorder.is_available ()) {
+        recorder = "pipewire";
       } else
 #endif
       if (FfmpegScreenRecorder.is_available ()) {
@@ -27,7 +32,7 @@ namespace Peek.Recording {
       }
 
       stdout.printf ("Using screen recorder backend %s\n", recorder);
-      return create_screen_recorder (recorder);
+      return recorder;
     }
 
     public static ScreenRecorder create_screen_recorder (string name) throws PeekError {
@@ -40,6 +45,10 @@ namespace Peek.Recording {
             throw new PeekError.SCREEN_RECORDER_ERROR (
               e.message);
           }
+#endif
+#if ! DISABLE_XDG_DESKTOP_PORTAL
+        case "pipewire":
+          return new PipewireScreenRecorder ();
 #endif
         case "ffmpeg":
           if (!FfmpegScreenRecorder.is_available ()) {

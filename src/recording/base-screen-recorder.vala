@@ -44,6 +44,13 @@ namespace Peek.Recording {
       config = new RecordingConfig ();
     }
 
+    public async bool prepare (Gtk.Window window) throws RecordingError {
+      return yield prepare_recording (window);
+    }
+
+    public virtual void cancel_prepare () {
+    }
+
     public void record (RecordingArea area) throws RecordingError {
       // Cancel running recording
       cancel ();
@@ -109,6 +116,9 @@ namespace Peek.Recording {
       }
     }
 
+    protected virtual async bool prepare_recording (Gtk.Window window) throws RecordingError {
+      return true;
+    }
     protected abstract void start_recording (RecordingArea area) throws RecordingError;
     protected abstract void stop_recording ();
 
